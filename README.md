@@ -51,3 +51,19 @@ o	GPS GND -> ESP32 GND
 o	GPS TX -> ESP32 GPIO 16 (RX)
 o	GPS RX -> ESP32 GPIO 17 (TX)
 •	ESP32 với Raspberry Pi 5: Kết nối trực tiếp qua cáp truyền dữ liệu USB Type-C cắm vào cổng USB của Pi 5.
+## 🔌 Bảng Kết Nối Chân (Pinout Mapping)
+
+Dưới đây là bảng nối dây tiêu chuẩn (BCM) giữa Raspberry Pi và các module dựa trên mã nguồn:
+
+| Thiết bị / Module | Chân trên Module | Chân trên Raspberry Pi (BCM) | Ghi chú |
+| :--- | :--- | :--- | :--- |
+| **Mạch L298N** | ENA (Băm xung Trái) | `GPIO 12` | Bắt buộc tháo Jumper |
+| | ENB (Băm xung Phải) | `GPIO 18` | Bắt buộc tháo Jumper |
+| | IN1, IN2 (Chiều quay Trái) | `GPIO 5`, `GPIO 6` | |
+| | IN3, IN4 (Chiều quay Phải) | `GPIO 13`, `GPIO 19` | |
+| **Màn hình LCD** | SDA (Dữ liệu I2C) | `SDA (GPIO 2)` | Kèm module PCF8574 |
+| | SCL (Xung nhịp I2C) | `SCL (GPIO 3)` | |
+| **Nút bấm & Còi** | Nút PS4 Mode | `GPIO 17` | Kéo xuống GND (Pull-down) |
+| | Nút WEB Mode | `GPIO 27` | Kéo xuống GND (Pull-down) |
+| | Còi Buzzer (VCC) | `GPIO 22` | |
+| **GPS (ESP32)** | Cổng USB / TX-RX | Cổng USB của Pi | Nhận dạng là `/dev/ttyUSB0` |
