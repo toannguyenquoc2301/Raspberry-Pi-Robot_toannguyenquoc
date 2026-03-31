@@ -27,22 +27,72 @@ Dự án Hệ thống Điều khiển và Giám sát Robot từ xa (Telemetry) s
 4. Chạy máy chủ:
    `python3 app.py`
 5. Truy cập `http://<IP_CỦA_PI>:5000` trên trình duyệt.
-## Sơ đồ nối 
-1.Sử dụng 6 chân GPIO để điều khiển độc lập 2 bên bánh xe (Trái và Phải) kèm băm xung tốc độ:
-•	L298N IN1 -> Pi 5 GPIO 5 (Tiến bên trái)
-•	L298N IN2 -> Pi 5 GPIO 6 (Lùi bên trái)
-•	L298N ENA -> Pi 5 GPIO 12 (Băm xung PWM bên trái - Rút Jumper trên L298N)
-•	L298N IN3 -> Pi 5 GPIO 13 (Tiến bên phải)
-•	L298N IN4 -> Pi 5 GPIO 19 (Lùi bên phải)
-•	L298N ENB -> Pi 5 GPIO 18 (Băm xung PWM bên phải - Rút Jumper trên L298N)
-•	L298N GND -> Pi 5 GND (Bắt buộc nối chung Mass)
-2. Kết nối Khối nút nhấn và Còi báo (Raspberry Pi 5 -> Nút & Buzzer) Sử dụng điện trở kéo lên nội bộ (Internal Pull-up) của Pi 5 để tối giản mạch:
-•	Nút nhấn 1 (Mode PS4): Một chân nối GPIO 17, một chân nối GND.
-•	Nút nhấn 2 (Mode Web): Một chân nối GPIO 27, một chân nối GND.
-•	Còi chip (Active Buzzer): Chân dương (VCC/+) nối GPIO 22, chân âm (-) nối GND.
-3. Kết nối Khối Hiển thị (Raspberry Pi 5 -> LCD 1602 I2C) Giao tiếp I2C giúp tiết kiệm chân GPIO:
-•	Module I2C VCC -> Pi 5 5V (Chân số 2 hoặc 4)
-•	Module I2C GND -> Pi 5 GND
+## 📐 Sơ đồ Kiến trúc & Kết nối Hệ thống
+
+```mermaid
+graph TD
+    %% Khối Giao tiếp mạng
+    subgraph "Giao tiếp Không dây (Wireless)"
+        WEB[Giao diện Web / Smartphone] <-->|Wi-Fi: HTTP / AJAX| PI((Raspberry Pi 3/4\nCentral Hub))
+        PS4[Tay cầm PS4 DualShock] <-->|Bluetooth 4.0| PI
+    end
+
+    %% Khối Nhập xuất cơ bản
+    subgraph "Giao diện HMI (Human-Machine Interface)"
+        PI -->|GPIO 17 & 27| BTN[Nút bấm Chuyển Mode]
+        PI -->|GPIO 22| BUZ[Còi báo hiệu Buzzer]
+        PI -->|I2C (SDA, SCL)| LCD[Màn hình LCD 1602 + PCF8574]
+        CAM[Camera Module] -->|CSI / USB| PI
+    end
+
+    %% Khối Viễn trắc GPS
+    subgraph "Hệ thống Viễn trắc (Telemetry)"
+        GPS[GPS Module NEO-6M] -->|UART| ESP[ESP32 / MCU]
+        ESP -->|Cáp USB: /dev/ttyUSB0| PI
+        PI <--> DB[(MariaDB/MySQL\nLocal Database)]
+    end
+
+    %% Khối Động lực
+    subgraph "Hệ thống Động lực (Actuators)"
+        PI -->|PWM (GPIO 12, 18)\nLogic (GPIO 5, 6, 13, 19)| L298N[Mạch điều khiển L298N]
+        L298N -->|OUT 1 & 2| ML((Động cơ Trái))
+        L298N -->|OUT 3 & 4| MR((Động cơ Phải))
+        BATT[Pin Li-Po 12V] --> L298N
+        L298N -->|Hạ áp 5V| PI
+    end
+
+    %% Định dạng màu sắc
+    style PI fill:#e63946,stroke:#333,stroke-width:2px,color:#fff
+    style DB fill:#457b9d,stroke:#333,stroke-width:2px,color:#fff
+    style L298N fill:#2a9d8f,stroke:#333,stroke-width:2px,color:#fff
+    style WEB fill:#f4a261,stroke:#333,stroke-width:2px,color:#fff
+    style PS4 fill:#f4a261,stroke:#333,stroke-width:2px,color:#fff
+
+---
+
+### 2. Bảng Nối Dây Chi Tiết (Pinout Table)
+
+Ngoài sơ đồ khối ở trên, đối với các dự án phần cứng, những người tải code của bạn về rất cần biết chính xác **chân nào cắm vào chân nào**. 
+
+Bạn hãy copy thêm bảng Markdown này dán ngay bên dưới sơ đồ Mermaid trong file `README.md` nhé:
+
+```markdown
+## 🔌 Bảng Kết Nối Chân (Pinout Mapping)
+
+Dưới đây là bảng nối dây tiêu chuẩn (BCM) giữa Raspberry Pi và các module dựa trên mã nguồn:
+
+| Thiết bị / Module | Chân trên Module | Chân trên Raspberry Pi (BCM) | Ghi chú |
+| :--- | :--- | :--- | :--- |
+| **Mạch L298N** | ENA (Băm xung Trái) | `GPIO 12` | Bắt buộc tháo Jumper |
+| | ENB (Băm xung Phải) | `GPIO 18` | Bắt buộc tháo Jumper |
+| | IN1, IN2 (Chiều quay Trái) | `GPIO 5`, `GPIO 6` | |
+| | IN3, IN4 (Chiều quay Phải) | `GPIO 13`, `GPIO 19` | |
+| **Màn hình LCD** | SDA (Dữ liệu I2C) | `SDA (GPIO 2)` | Kèm module PCF8574 |
+| | SCL (Xung nhịp I2C) | `SCL (GPIO 3)` | |
+| **Nút bấm & Còi** | Nút PS4 Mode | `GPIO 17` | Kéo xuống GND (Pull-down) |
+| | Nút WEB Mode | `GPIO 27` | Kéo xuống GND (Pull-down) |
+| | Còi Buzzer (VCC) | `GPIO 22` | |
+| **GPS (ESP32)** | Cổng USB / TX-RX | Cổng USB của Pi | Nhận dạng là `/dev/ttyUSB0`
 •	Module I2C SDA -> Pi 5 GPIO 2 (SDA)
 •	Module I2C SCL -> Pi 5 GPIO 3 (SCL)
 4. Kết nối Khối Vị trí (ESP32 -> GPS NEO-7M và Pi 5)
