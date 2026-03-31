@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robot Điều Khiển</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        body { background: #222; color: #fff; text-align: center; font-family: sans-serif; margin: 0; padding: 10px;}
+        .hud { background: #333; padding: 10px; border-radius: 8px; margin-bottom: 15px;}
+        .hud span { color: #0f0; font-weight: bold; margin: 0 10px;}
+        img { width: 100%; max-width: 640px; border: 3px solid #555; border-radius: 10px;}
+        
+        /* CSS cho nút chuyển Mode */
+        .mode-container { margin-top: 15px; }
+        .mode-btn { padding: 10px 20px; margin: 0 5px; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; color: white;}
+        .btn-web { background-color: #007bff; }
+        .btn-ps4 { background-color: #dc3545; }
+        .btn-web:active, .btn-ps4:active { opacity: 0.7; }
+
+        .dpad { display: grid; grid-template-columns: 80px 80px 80px; gap: 10px; justify-content: center; margin-top: 20px;}
+        .btn { width: 80px; height: 80px; background: #555; color: #fff; border: none; border-radius: 10px; font-size: 24px; touch-action: none;}
+        .btn:active { background: #0f0; }
+        .links { margin-top: 20px;}
+        .links a { color: #0f0; text-decoration: none; border: 1px solid #0f0; padding: 10px 15px; border-radius: 5px;}
+    </style>
+</head>
+<body>
+    <div class="hud">
+        <span id="time_val">--:--</span>
+        Mode: <span id="mode_val">WEB</span>
+        FPS: <span id="fps_val">0</span>
+    </div>
+
+    <img src="/video_feed" alt="Camera Stream">
+
+    <div class="mode-container">
+        <button class="mode-btn btn-web" onclick="switchMode('WEB')">📱 Mode WEB</button>
+        <button class="mode-btn btn-ps4" onclick="switchMode('PS4')">🎮 Mode PS4</button>
+    </div>
+
+    <div class="dpad" id="dpad_area">
+        <div></div><button class="btn" id="btn_up">▲</button><div></div>
+        <button class="btn" id="btn_left">◀</button>
+        <button class="btn" id="btn_down">▼</button>
+        <button class="btn" id="btn_right">▶</button>
+    </div>
+
+    <div class="links"><a href="/gps">📍 Mở Bản Đồ GPS</a></div>
+
+    <script>
+        // Hàm gửi lệnh chuyển Mode
+        function switchMode(targetMode) {
+            fetch('/api/set_mode', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({mode: targetMode})
+            }).catch(e => console.error(e));
+        }
+
+        setInterval(() => {
+            fetch('/api/status').then(r => r.json()).then(d => {
+                document.getElementById('time_val').innerText = d.time;
+                document.getElementById('mode_val').innerText = d.mode;
+                document.getElementById('fps_val').innerText = d.fps;
+                // Làm mờ cụm nút bấm di chuyển nếu đang ở mode PS4
+                document.getElementById('dpad_area').style.opacity = (d.mode === 'PS4') ? '0.3' : '1';
+            });
+        }, 1000);
+
+        function sendCmd(cmd) {
+            fetch('/api/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({direction: cmd})
+            }).catch(e => {});
+        }
+
+        function setupBtn(id, cmd) {
+            const btn = document.getElementById(id);
+            btn.addEventListener('mousedown', () => sendCmd(cmd));
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); sendCmd(cmd); });
+            btn.addEventListener('mouseup', () => sendCmd('stop'));
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); sendCmd('stop'); });
+        }
+
+        setupBtn('btn_up', 'up'); setupBtn('btn_down', 'down');
+        setupBtn('btn_left', 'left'); setupBtn('btn_right', 'right');
+    </script>
+</body>
+</html>
