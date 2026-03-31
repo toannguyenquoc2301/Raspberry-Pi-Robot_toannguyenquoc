@@ -1,0 +1,63 @@
+## 🚀 Hướng Dẫn Cài Đặt (Installation Guide)
+
+Dưới đây là các bước chi tiết để thiết lập hệ thống trên Raspberry Pi OS (Debian-based). Hãy mở Terminal lên và thực hiện lần lượt các lệnh sau:
+
+### 1. Tải Mã Nguồn & Thiết Lập Cấu Trúc
+Đầu tiên, hãy nhân bản (clone) kho lưu trữ này về máy của bạn:
+```bash
+mkdir <tên folder>
+cd <tên folder>
+git clone [https://github.com/toannguyenquoc2301/Raspberry-Pi-Robot_toannguyenquoc](https://github.com/toannguyenquoc2301/Raspberry-Pi-Robot_toannguyenquoc.git)
+
+Lưu ý: Hãy thay thế TenCuaBan/Ten-Repo-Cua-Ban bằng đường dẫn thực tế của bạn.
+
+2. Tạo Môi Trường Ảo (Virtual Environment)
+Việc sử dụng môi trường ảo giúp cách ly các thư viện của dự án, tránh xung đột với hệ thống cốt lõi của Raspberry Pi.
+
+Bash
+# Cài đặt gói venv (nếu Pi chưa có sẵn)
+sudo apt update
+sudo apt install python3-venv -y
+
+# Tạo môi trường ảo mang tên "env"
+python3 -m venv env
+
+# Kích hoạt môi trường ảo
+source env/bin/activate
+💡 Thành công: Bạn sẽ thấy tiền tố (env) xuất hiện ở đầu dòng lệnh Terminal.
+
+3. Cài Đặt Thư Viện Python (Dependencies)
+Đảm bảo bạn đang ở trong môi trường ảo (env), sau đó chạy lệnh:
+
+Bash
+pip install -r requirements.txt
+4. Cấu Hình Cơ Sở Dữ Liệu (MariaDB)
+Hệ thống sử dụng MariaDB để lưu trữ tọa độ GPS. Cài đặt và thiết lập như sau:
+
+Bash
+# Cài đặt MariaDB Server
+sudo apt install mariadb-server -y
+
+# Mở giao diện dòng lệnh của MySQL
+sudo mysql -u root
+Khi màn hình chuyển sang MariaDB [(none)]>, hãy dán toàn bộ khối lệnh SQL dưới đây vào để tạo Database:
+
+SQL
+CREATE DATABASE robot_db;
+USE robot_db;
+CREATE TABLE gps_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lat FLOAT(10, 6) NOT NULL,
+    lon FLOAT(10, 6) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+exit;
+5. Khởi Chạy Hệ Thống
+Kiểm tra lại toàn bộ kết nối phần cứng (Camera, Mạch L298N, module GPS, màn hình LCD) trước khi chạy máy chủ:
+
+Bash
+# Đảm bảo bạn vẫn đang ở trong thư mục dự án và đã kích hoạt (env)
+python3 app.py
+🎉 Hoàn tất! Hãy mở trình duyệt web trên thiết bị cùng mạng Wi-Fi và truy cập:
+
+👉 http://<IP_CỦA_RASPBERRY_PI>:5000
