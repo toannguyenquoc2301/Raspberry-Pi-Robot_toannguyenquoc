@@ -28,58 +28,7 @@ Dự án Hệ thống Điều khiển và Giám sát Robot từ xa (Telemetry) s
    `python3 app.py`
 5. Truy cập `http://<IP_CỦA_PI>:5000` trên trình duyệt.
 ## 📐 Sơ đồ Kiến trúc & Kết nối Hệ thống
-
-```mermaid
-graph TD
-    %% Khối Giao tiếp mạng
-    subgraph "Giao tiếp Không dây (Wireless)"
-        WEB[Giao diện Web / Smartphone] <-->|Wi-Fi: HTTP / AJAX| PI((Raspberry Pi 3/4\nCentral Hub))
-        PS4[Tay cầm PS4 DualShock] <-->|Bluetooth 4.0| PI
-    end
-
-    %% Khối Nhập xuất cơ bản
-    subgraph "Giao diện HMI (Human-Machine Interface)"
-        PI -->|GPIO 17 & 27| BTN[Nút bấm Chuyển Mode]
-        PI -->|GPIO 22| BUZ[Còi báo hiệu Buzzer]
-        PI -->|I2C (SDA, SCL)| LCD[Màn hình LCD 1602 + PCF8574]
-        CAM[Camera Module] -->|CSI / USB| PI
-    end
-
-    %% Khối Viễn trắc GPS
-    subgraph "Hệ thống Viễn trắc (Telemetry)"
-        GPS[GPS Module NEO-6M] -->|UART| ESP[ESP32 / MCU]
-        ESP -->|Cáp USB: /dev/ttyUSB0| PI
-        PI <--> DB[(MariaDB/MySQL\nLocal Database)]
-    end
-
-    %% Khối Động lực
-    subgraph "Hệ thống Động lực (Actuators)"
-        PI -->|PWM (GPIO 12, 18)\nLogic (GPIO 5, 6, 13, 19)| L298N[Mạch điều khiển L298N]
-        L298N -->|OUT 1 & 2| ML((Động cơ Trái))
-        L298N -->|OUT 3 & 4| MR((Động cơ Phải))
-        BATT[Pin Li-Po 12V] --> L298N
-        L298N -->|Hạ áp 5V| PI
-    end
-
-    %% Định dạng màu sắc
-    style PI fill:#e63946,stroke:#333,stroke-width:2px,color:#fff
-    style DB fill:#457b9d,stroke:#333,stroke-width:2px,color:#fff
-    style L298N fill:#2a9d8f,stroke:#333,stroke-width:2px,color:#fff
-    style WEB fill:#f4a261,stroke:#333,stroke-width:2px,color:#fff
-    style PS4 fill:#f4a261,stroke:#333,stroke-width:2px,color:#fff
-
----
-
-### 2. Bảng Nối Dây Chi Tiết (Pinout Table)
-
-Ngoài sơ đồ khối ở trên, đối với các dự án phần cứng, những người tải code của bạn về rất cần biết chính xác **chân nào cắm vào chân nào**. 
-
-Bạn hãy copy thêm bảng Markdown này dán ngay bên dưới sơ đồ Mermaid trong file `README.md` nhé:
-
-```markdown
-## 🔌 Bảng Kết Nối Chân (Pinout Mapping)
-
-Dưới đây là bảng nối dây tiêu chuẩn (BCM) giữa Raspberry Pi và các module dựa trên mã nguồn:
+Dưới đây là bảng nối dây tiêu chuẩn (BCM) giữa Raspberry Pi và các module :
 
 | Thiết bị / Module | Chân trên Module | Chân trên Raspberry Pi (BCM) | Ghi chú |
 | :--- | :--- | :--- | :--- |
