@@ -18,15 +18,6 @@ Dự án Hệ thống Điều khiển và Giám sát Robot từ xa (Telemetry) s
 * **Hardware Interfacing:** `gpiozero`, `RPLCD.i2c`, `pyPS4Controller`, `pyserial`.
 * **Linh kiện:** Raspberry Pi 5, Mạch công suất L298N ( Hoặc Diver XY 160D ), Màn hình LCD 1602 + Module I2C , Tay cầm PS4 DualShock 4, ESP32 + Module GPS Neo-7M.
 
-## 🚀 Hướng dẫn Cài đặt
-1. Clone kho lưu trữ này về Raspberry Pi của bạn:
-   `git clone https://github.com/toannguyenquoc2301/Raspberry-Pi-Robot_toannguyenquoc`
-2. Cài đặt các thư viện cần thiết:
-   `pip install -r requirements.txt`
-3. Cấu hình Database MariaDB với cơ sở dữ liệu `robot_db` và bảng `gps_data`.
-4. Chạy máy chủ:
-   `python3 app.py`
-5. Truy cập `http://<IP_CỦA_PI>:5000` trên trình duyệt.
 ## 🔌 Bảng Kết Nối Chân (Pinout Mapping)
 
 Dưới đây là bảng nối dây tiêu chuẩn (BCM) giữa Raspberry Pi và các module dựa trên mã nguồn:
